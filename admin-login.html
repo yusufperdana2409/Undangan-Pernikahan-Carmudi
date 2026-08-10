@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Login Admin</title>
+
+    <link rel="icon" href="data:," />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+
+  <body class="bg-gray-100 min-h-screen flex items-center justify-center px-4">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
+      <!-- HEADER -->
+
+      <div class="text-center mb-8">
+        <div
+          class="w-16 h-16 bg-slate-800 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-2xl"
+        >
+          🔐
+        </div>
+
+        <h1 class="text-2xl font-bold text-gray-800">Admin Panel</h1>
+
+        <p class="text-gray-500 mt-2">Silakan login untuk melanjutkan</p>
+      </div>
+
+      <!-- FORM -->
+
+      <form id="loginForm">
+        <!-- USERNAME -->
+
+        <div class="mb-4">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">
+            Username
+          </label>
+
+          <input
+            type="text"
+            id="username"
+            placeholder="Masukkan username"
+            autocomplete="username"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+          />
+        </div>
+
+        <!-- PASSWORD -->
+
+        <div class="mb-6">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">
+            Password
+          </label>
+
+          <input
+            type="password"
+            id="password"
+            placeholder="Masukkan password"
+            autocomplete="current-password"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+          />
+        </div>
+
+        <!-- ERROR -->
+
+        <p
+          id="loginError"
+          class="hidden text-red-500 text-sm text-center mb-4"
+        ></p>
+
+        <!-- BUTTON -->
+
+        <button
+          type="submit"
+          id="btnLogin"
+          class="w-full bg-slate-800 hover:bg-slate-700 text-white font-semibold py-3 rounded-lg transition"
+        >
+          🔐 Login
+        </button>
+      </form>
+    </div>
+
+    <!-- LOGIN SCRIPT -->
+
+    <script>
+      // ========================================
+      // API
+      // ========================================
+
+      const GUEST_API =
+        "https://script.google.com/macros/s/AKfycbxsoD7mXaD84o6aE6Cd5c4SHA3wXoTXFDmaB1-_KG9e8C72tb7yTjl1HiNELhV196vHOA/exec";
+
+      // ========================================
+      // FORM
+      // ========================================
+
+      const loginForm = document.getElementById("loginForm");
+
+      loginForm.addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        const username = document.getElementById("username").value.trim();
+
+        const password = document.getElementById("password").value;
+
+        const error = document.getElementById("loginError");
+
+        const button = document.getElementById("btnLogin");
+
+        // ========================================
+        // RESET ERROR
+        // ========================================
+
+        error.classList.add("hidden");
+
+        error.textContent = "";
+
+        // ========================================
+        // VALIDASI
+        // ========================================
+
+        if (!username || !password) {
+          error.textContent = "Username dan password wajib diisi.";
+
+          error.classList.remove("hidden");
+
+          return;
+        }
+
+        // ========================================
+        // DISABLE BUTTON
+        // ========================================
+
+        button.disabled = true;
+
+        button.textContent = "⏳ Memeriksa login...";
+
+        try {
+          // ========================================
+          // LOGIN KE APPS SCRIPT
+          // ========================================
+
+          const response = await fetch(GUEST_API, {
+            method: "POST",
+
+            body: JSON.stringify({
+              type: "loginAdmin",
+
+              username: username,
+
+              password: password,
+            }),
+          });
+
+          const result = await response.json();
+
+          console.log("Response login:", result);
+
+          // ========================================
+          // LOGIN BERHASIL
+          // ========================================
+
+          if (result.result === "success" && result.token) {
+            // Simpan token
+            sessionStorage.setItem("adminToken", result.token);
+
+            // Simpan username
+            sessionStorage.setItem("adminUsername", username);
+
+            // Masuk admin
+            window.location.href = "admin.html";
+
+            return;
+          }
+
+          // ========================================
+          // LOGIN GAGAL
+          // ========================================
+
+          error.textContent = result.message || "Username atau password salah.";
+
+          error.classList.remove("hidden");
+        } catch (err) {
+          console.error("Error login:", err);
+
+          error.textContent = "Tidak dapat terhubung ke server.";
+
+          error.classList.remove("hidden");
+        }
+
+        // ========================================
+        // ENABLE BUTTON
+        // ========================================
+
+        button.disabled = false;
+
+        button.textContent = "🔐 Login";
+      });
+    </script>
+  </body>
+</html>

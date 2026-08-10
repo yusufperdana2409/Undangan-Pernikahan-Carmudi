@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Admin Panel - Daftar Tamu</title>
+
+    <!-- ========================================
+       CEK LOGIN
+  ======================================== -->
+
+    <script>
+      const adminToken = sessionStorage.getItem("adminToken");
+
+      if (!adminToken) {
+        window.location.replace("admin-login.html");
+      }
+    </script>
+
+    <link rel="icon" href="data:," />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+
+  <body class="bg-gray-100 min-h-screen">
+    <!-- ========================================
+       HEADER
+  ======================================== -->
+
+    <div class="max-w-6xl mx-auto px-4 py-8">
+      <div
+        class="bg-white rounded-xl shadow p-6 mb-6 flex items-center justify-between"
+      >
+        <div>
+          <h1 class="text-2xl font-bold text-gray-800">Admin Panel</h1>
+
+          <p class="text-gray-500 mt-1">Kelola daftar tamu undangan</p>
+        </div>
+
+        <!-- LOGOUT -->
+
+        <button
+          id="btnLogout"
+          class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
+        >
+          🚪 Logout
+        </button>
+      </div>
+
+      <!-- ========================================
+     DASHBOARD STATISTIK
+======================================== -->
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <!-- TOTAL TAMU -->
+
+        <div class="bg-white rounded-xl shadow p-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-gray-500">Total Tamu</p>
+
+              <p id="total-tamu" class="text-3xl font-bold text-gray-800 mt-1">
+                0
+              </p>
+            </div>
+
+            <div class="text-3xl">👥</div>
+          </div>
+        </div>
+
+        <!-- SUDAH DIKIRIM -->
+
+        <div class="bg-white rounded-xl shadow p-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-gray-500">Sudah Dikirim</p>
+
+              <p
+                id="sudah-dikirim"
+                class="text-3xl font-bold text-green-600 mt-1"
+              >
+                0
+              </p>
+            </div>
+
+            <div class="text-3xl">🟢</div>
+          </div>
+        </div>
+
+        <!-- BELUM DIKIRIM -->
+
+        <div class="bg-white rounded-xl shadow p-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-gray-500">Belum Dikirim</p>
+
+              <p
+                id="belum-dikirim"
+                class="text-3xl font-bold text-gray-600 mt-1"
+              >
+                0
+              </p>
+            </div>
+
+            <div class="text-3xl">⚪</div>
+          </div>
+        </div>
+
+        <!-- TOTAL RSVP -->
+
+        <div class="bg-white rounded-xl shadow p-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-gray-500">Total RSVP</p>
+
+              <p id="total-rsvp" class="text-3xl font-bold text-blue-600 mt-1">
+                0
+              </p>
+            </div>
+
+            <div class="text-3xl">📋</div>
+          </div>
+        </div>
+
+        <!-- HADIR -->
+
+        <div class="bg-white rounded-xl shadow p-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-gray-500">Hadir</p>
+
+              <p
+                id="total-hadir"
+                class="text-3xl font-bold text-emerald-600 mt-1"
+              >
+                0
+              </p>
+            </div>
+
+            <div class="text-3xl">💚</div>
+          </div>
+        </div>
+
+        <!-- TIDAK HADIR -->
+
+        <div class="bg-white rounded-xl shadow p-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-gray-500">Tidak Hadir</p>
+
+              <p
+                id="total-tidak-hadir"
+                class="text-3xl font-bold text-red-600 mt-1"
+              >
+                0
+              </p>
+            </div>
+
+            <div class="text-3xl">❌</div>
+          </div>
+        </div>
+
+        <!-- TOTAL UCAPAN -->
+
+        <div class="bg-white rounded-xl shadow p-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm text-gray-500">Ucapan</p>
+
+              <p
+                id="total-ucapan"
+                class="text-3xl font-bold text-purple-600 mt-1"
+              >
+                0
+              </p>
+            </div>
+
+            <div class="text-3xl">💬</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================
+         TAMBAH TAMU
+    ======================================== -->
+
+      <div class="bg-white rounded-xl shadow p-6 mb-6">
+        <h2 class="text-lg font-bold mb-4">Tambah Tamu</h2>
+
+        <div class="grid md:grid-cols-2 gap-3">
+          <input
+            type="text"
+            id="namaTamu"
+            placeholder="Nama tamu"
+            class="w-full px-4 py-3 border rounded-lg"
+          />
+
+          <input
+            type="text"
+            id="nomorWA"
+            placeholder="Nomor WhatsApp, contoh: 628123456789"
+            class="w-full px-4 py-3 border rounded-lg"
+          />
+        </div>
+
+        <button
+          type="button"
+          id="btnTambahTamu"
+          class="mt-3 bg-slate-800 text-white px-5 py-3 rounded-lg hover:bg-slate-700"
+        >
+          + Tambah Tamu
+        </button>
+      </div>
+
+      <!-- ========================================
+         DAFTAR TAMU
+    ======================================== -->
+
+      <div class="bg-white rounded-xl shadow overflow-hidden">
+        <!-- SEARCH -->
+
+        <div class="p-6 border-b">
+          <input
+            type="text"
+            id="searchTamu"
+            placeholder="🔎 Cari nama tamu..."
+            class="w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-400"
+          />
+        </div>
+
+        <div class="p-6 border-b">
+          <h2 class="text-lg font-bold">Daftar Tamu</h2>
+        </div>
+
+        <!-- TABLE -->
+
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="text-left px-6 py-4">No</th>
+
+                <th class="text-left px-6 py-4">Nama Tamu</th>
+
+                <th class="text-left px-6 py-4">Link Undangan</th>
+
+                <th class="text-left px-6 py-4">Status</th>
+
+                <th class="text-left px-6 py-4">Aksi</th>
+              </tr>
+            </thead>
+
+            <tbody id="guest-list">
+              <tr>
+                <td colspan="5" class="text-center px-6 py-8 text-gray-500">
+                  Memuat data...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================
+     DATA RSVP
+======================================== -->
+
+    <div class="max-w-6xl mx-auto px-4">
+      <div class="bg-white rounded-xl shadow p-6 mt-6">
+        <h2 class="text-lg font-bold text-gray-800 mb-4">RSVP Pernikahan</h2>
+
+        <div id="rsvpList">
+          <div class="text-center text-gray-400 py-8">Memuat data RSVP...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================
+     DATA UCAPAN
+======================================== -->
+
+    <div class="max-w-6xl mx-auto px-4">
+      <div class="bg-white rounded-xl shadow p-6 mt-6">
+        <h2 class="text-lg font-bold text-gray-800 mb-4">Ucapan & Doa</h2>
+
+        <div id="ucapanList">
+          <div class="text-center text-gray-400 py-8">Memuat ucapan...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================
+       ADMIN JS
+  ======================================== -->
+
+    <script src="admin.js"></script>
+  </body>
+</html>
