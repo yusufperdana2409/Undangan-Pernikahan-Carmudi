@@ -1,41 +1,184 @@
-// AOS Initialization
+// ==========================================
+// AOS ANIMATION
+// ==========================================
 AOS.init({
-  duration: 1000,
-  once: false,
-  mirror: true,
+  duration: 900,
+  once: true,
+  mirror: false,
+  easing: "ease-out-cubic",
+  offset: 100,
 });
 
-// Script to Handle Opening Invitation
+// ==========================================
+// OPEN INVITATION
+// ==========================================
 function openInvitation() {
   const cover = document.getElementById("intro-cover");
+
   if (!cover) return;
 
-  // Putar musik latar terlebih dahulu
+  // ==============================
+  // 1. Putar musik
+  // ==============================
   const bgMusic = document.getElementById("bg-music");
+
   if (bgMusic) {
-    bgMusic.play().catch((e) => console.error("Audio playback prevented:", e));
+    bgMusic.play().catch((error) => {
+      console.log("Audio playback prevented:", error);
+    });
   }
 
-  // Jeda 2 detik sebelum memicu animasi slide up
+  // ==============================
+  // 2. Persiapkan animasi cover
+  // ==============================
+  cover.style.transition =
+    "transform 2s cubic-bezier(0.77, 0, 0.18, 1), opacity 1.5s ease";
+
+  // Sedikit zoom sebelum keluar
+  cover.style.transform = "scale(1.05) translateY(-100%)";
+
+  // Fade out
+  cover.style.opacity = "0";
+
+  // ==============================
+  // 3. Aktifkan scroll halaman
+  // ==============================
+  document.body.classList.remove("overflow-hidden");
+  document.body.classList.add("overflow-x-hidden");
+
+  // ==============================
+  // 4. Hilangkan cover
+  // ==============================
   setTimeout(() => {
-    // Execute slide up animation securely by manipulating inline styles
-    cover.style.transform = "translateY(-100%)";
+    cover.style.display = "none";
 
-    // Allow page scroll again
-    document.body.classList.remove("overflow-hidden");
-    document.body.classList.add("overflow-x-hidden");
+    // Refresh AOS
+    if (typeof AOS !== "undefined") {
+      AOS.refresh();
+    }
 
-    // Hide element from DOM permanently after animation completes
-    setTimeout(() => {
-      cover.style.display = "none";
+    // Scroll indicator
+    const scrollIndicator = document.getElementById("scroll-indicator");
 
-      // Refresh AOS to trigger animations securely on the home section content
-      if (typeof AOS !== "undefined") {
-        AOS.refresh();
-      }
-    }, 3000);
-  }, 1000); // Jeda 1.5 detik (sesuaikan antara 1000ms - 5000ms jika perlu)
+    if (scrollIndicator) {
+      scrollIndicator.classList.remove("opacity-0");
+    }
+  }, 2200);
 }
+// ==========================================
+// MUSIC CONTROL
+// ==========================================
+function toggleMusic() {
+  const bgMusic = document.getElementById("bg-music");
+
+  if (!bgMusic) return;
+
+  if (bgMusic.paused) {
+    bgMusic.play().catch((error) => {
+      console.log("Music gagal diputar:", error);
+    });
+  } else {
+    bgMusic.pause();
+  }
+}
+
+/* =========================================================
+   AYAT MUNCUL SATU PER SATU
+   CEPAT + HALUS
+   MENGGUNAKAN TAILWIND CSS
+   ========================================================= */
+
+document.addEventListener("DOMContentLoaded", () => {
+  const quote = document.getElementById("quote-text");
+  const source = document.getElementById("quote-source");
+
+  if (!quote || !source) return;
+
+  // Simpan teks asli
+  const text = quote.textContent.trim();
+
+  // Pecah menjadi kata
+  const words = text.split(/\s+/);
+
+  // Kosongkan paragraf
+  quote.innerHTML = "";
+
+  // =====================================================
+  // BUAT SETIAP KATA MENJADI SPAN
+  // =====================================================
+
+  words.forEach((word, index) => {
+    const span = document.createElement("span");
+
+    span.textContent = word;
+
+    span.className = `
+        inline-block
+        opacity-0
+        translate-x-3
+        blur-[1px]
+        transition-all
+        duration-300
+        ease-out
+      `;
+
+    quote.appendChild(span);
+
+    // Tambahkan spasi
+    if (index < words.length - 1) {
+      quote.appendChild(document.createTextNode(" "));
+    }
+  });
+
+  // Ambil semua kata
+  const wordElements = quote.querySelectorAll("span");
+
+  // =====================================================
+  // MULAI ANIMASI SAAT SECTION TERLIHAT
+  // =====================================================
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+
+        // =================================================
+        // KATA MUNCUL CEPAT SATU PER SATU
+        // =================================================
+
+        wordElements.forEach((word, index) => {
+          setTimeout(() => {
+            word.classList.remove("opacity-0", "translate-x-3", "blur-[1px]");
+
+            word.classList.add("opacity-100", "translate-x-0", "blur-0");
+          }, 300 + index * 55);
+        });
+
+        // =================================================
+        // SETELAH SEMUA KATA SELESAI
+        // MUNCULKAN QS. AR-RUM
+        // =================================================
+
+        const totalTime = 300 + wordElements.length * 55 + 500;
+
+        setTimeout(() => {
+          source.classList.remove("opacity-0", "translate-y-2");
+
+          source.classList.add("opacity-100", "translate-y-0");
+        }, totalTime);
+
+        // Jalankan hanya satu kali
+        observer.disconnect();
+      });
+    },
+
+    {
+      threshold: 0.3,
+    }
+  );
+
+  observer.observe(quote);
+});
 
 // Script to handle Modal Interactions
 function openGiftModal() {
@@ -225,24 +368,35 @@ async function fetchWishes() {
     const huruf = item.nama.charAt(0).toUpperCase();
 
     container.innerHTML += `
-        <div class="py-5 border-b border-gray-100 flex gap-3">
+    <div class="py-5 border-b border-[#DDD2C5] flex gap-3">
 
-            <div class="w-9 h-9 rounded-full bg-[#8E8271] text-white flex justify-center items-center font-bold">
-                ${huruf}
-            </div>
+        <!-- Avatar -->
+        <div class="w-9 h-9 rounded-full bg-[#8E8271] text-white flex justify-center items-center font-bold shrink-0">
+            ${huruf}
+        </div>
 
-            <div class="flex-1">
+        <!-- Comment Content -->
+        <div class="flex-1">
 
-                <h4 class="font-bold">${item.nama}</h4>
+            <!-- Nama -->
+            <h4 class="font-bold text-[#302821]">
+                ${item.nama}
+            </h4>
 
-                <small class="text-gray-500">${waktu}</small>
+            <!-- Waktu -->
+            <small class="text-[#8E8271]">
+                ${waktu}
+            </small>
 
-                <p class="mt-2 text-gray-700">${item.ucapan}</p>
-
-            </div>
+            <!-- Ucapan -->
+            <p class="mt-2 text-[#4A4A4A]">
+                ${item.ucapan}
+            </p>
 
         </div>
-        `;
+
+    </div>
+`;
   });
 }
 
