@@ -2,11 +2,11 @@
 // AOS ANIMATION
 // ==========================================
 AOS.init({
-  duration: 900,
-  once: true,
+  duration: 1000,
+  once: false,
   mirror: false,
   easing: "ease-out-cubic",
-  offset: 100,
+  offset: 0,
 });
 
 // ==========================================
@@ -52,9 +52,13 @@ function openInvitation() {
   setTimeout(() => {
     cover.style.display = "none";
 
-    // Refresh AOS
+    // Refresh AOS setelah cover benar-benar hilang
     if (typeof AOS !== "undefined") {
-      AOS.refresh();
+      AOS.refreshHard();
+
+      setTimeout(() => {
+        AOS.refreshHard();
+      }, 300);
     }
 
     // Scroll indicator
@@ -65,6 +69,7 @@ function openInvitation() {
     }
   }, 2200);
 }
+
 // ==========================================
 // MUSIC CONTROL
 // ==========================================
@@ -274,14 +279,61 @@ document.addEventListener("DOMContentLoaded", function () {
   }, 1000);
 });
 
-// Fungsi Kirim Data RSVP
-// =========================
+// ==========================================
+// RSVP
+// ==========================================
+
+let rsvpSending = false;
+
 async function submitRSVP(event) {
   event.preventDefault();
 
-  const nama = document.getElementById("rsvp-nama").value;
+  // Cegah klik / submit berkali-kali
+  if (rsvpSending) return;
+
+  const form = document.getElementById("form-rsvp");
+
+  const nama = document.getElementById("rsvp-nama").value.trim();
   const kehadiran = document.getElementById("rsvp-kehadiran").value;
   const jumlah = document.getElementById("rsvp-jumlah").value;
+
+  // Validasi
+  if (!nama || !kehadiran || !jumlah) {
+    alert("Mohon lengkapi data RSVP terlebih dahulu.");
+    return;
+  }
+
+  // ==========================================
+  // KONFIRMASI
+  // ==========================================
+
+  const yakin = confirm(
+    `Konfirmasi RSVP\n\n` +
+      `Nama: ${nama}\n` +
+      `Kehadiran: ${kehadiran}\n` +
+      `Jumlah tamu: ${jumlah}\n\n` +
+      `Apakah data ini sudah benar?`
+  );
+
+  // Jika klik Cancel
+  if (!yakin) {
+    return;
+  }
+
+  // ==========================================
+  // KUNCI TOMBOL
+  // ==========================================
+
+  rsvpSending = true;
+
+  const button = form.querySelector('button[type="submit"]');
+
+  if (button) {
+    button.disabled = true;
+    button.dataset.originalText = button.innerText;
+    button.innerText = "⏳ Mengirim...";
+    button.classList.add("opacity-60", "cursor-not-allowed");
+  }
 
   try {
     const response = await fetch(
@@ -299,23 +351,82 @@ async function submitRSVP(event) {
     const result = await response.json();
 
     if (result.result === "success") {
-      alert("RSVP berhasil dikirim!");
-      document.getElementById("form-rsvp").reset();
+      alert("✅ RSVP berhasil dikirim!");
+
+      form.reset();
     } else {
-      alert("Gagal mengirim RSVP.");
+      alert("❌ Gagal mengirim RSVP.");
     }
   } catch (err) {
-    console.error(err);
-    alert("Terjadi kesalahan.");
+    console.error("RSVP Error:", err);
+    alert("❌ Terjadi kesalahan saat mengirim RSVP.");
+  } finally {
+    // Buka kembali tombol jika gagal
+    rsvpSending = false;
+
+    if (button) {
+      button.disabled = false;
+      button.innerText = button.dataset.originalText || "Kirim Reservasi";
+      button.classList.remove("opacity-60", "cursor-not-allowed");
+    }
   }
 }
-// Fungsi Kirim Data Ucapan
-// Fungsi Kirim Data Ucapan ke Google Sheets
+// ==========================================
+// WISHES / UCAPAN
+// ==========================================
+
+let wishSending = false;
+
 async function submitWish(event) {
   event.preventDefault();
 
-  const nama = document.getElementById("wish-nama").value;
-  const ucapan = document.getElementById("wish-ucapan").value;
+  // Cegah klik berkali-kali
+  if (wishSending) return;
+
+  const form = document.getElementById("form-wishes");
+
+  const nama = document.getElementById("wish-nama").value.trim();
+  const ucapan = document.getElementById("wish-ucapan").value.trim();
+
+  // ==========================================
+  // VALIDASI
+  // ==========================================
+
+  if (!nama || !ucapan) {
+    alert("Mohon isi nama dan ucapan terlebih dahulu.");
+    return;
+  }
+
+  // ==========================================
+  // KONFIRMASI
+  // ==========================================
+
+  const yakin = confirm(
+    `Konfirmasi Ucapan\n\n` +
+      `Nama: ${nama}\n\n` +
+      `Ucapan:\n"${ucapan}"\n\n` +
+      `Apakah Anda yakin ingin mengirim ucapan ini?`
+  );
+
+  // Jika klik Cancel
+  if (!yakin) {
+    return;
+  }
+
+  // ==========================================
+  // KUNCI TOMBOL
+  // ==========================================
+
+  wishSending = true;
+
+  const button = form.querySelector('button[type="submit"]');
+
+  if (button) {
+    button.disabled = true;
+    button.dataset.originalText = button.innerText;
+    button.innerText = "⏳ Mengirim...";
+    button.classList.add("opacity-60", "cursor-not-allowed");
+  }
 
   try {
     const response = await fetch(
@@ -333,16 +444,28 @@ async function submitWish(event) {
     const result = await response.json();
 
     if (result.result === "success") {
-      alert("Ucapan berhasil dikirim!");
-      document.getElementById("form-wishes").reset();
+      alert("💌 Ucapan berhasil dikirim!");
 
-      fetchWishes();
+      // Kosongkan form
+      form.reset();
+
+      // Ambil data terbaru
+      await fetchWishes();
     } else {
-      alert("Gagal mengirim ucapan.");
+      alert("❌ Gagal mengirim ucapan.");
     }
   } catch (err) {
-    console.error(err);
-    alert("Terjadi kesalahan.");
+    console.error("Wish Error:", err);
+    alert("❌ Terjadi kesalahan saat mengirim ucapan.");
+  } finally {
+    // Buka kembali tombol
+    wishSending = false;
+
+    if (button) {
+      button.disabled = false;
+      button.innerText = button.dataset.originalText || "Kirim Ucapan";
+      button.classList.remove("opacity-60", "cursor-not-allowed");
+    }
   }
 }
 // Fungsi Ambil & Tampilkan Data Ucapan
